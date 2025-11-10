@@ -1,0 +1,47 @@
+A = [0 1; -2 -3];
+B = [0; 1];
+C = [1 0];
+OLP = [-1 -2];       % Original system poles
+DP = [-5 -6];        % Desired observer poles
+OB = obsv(A, C);     % Observability matrix
+Ac = transpose(A);
+Bc = transpose(B);
+u = 1;
+
+k = place(A, B, DP);           % State feedback gain (not used here)
+L = place(A', C', DP)';        % Observer gain
+
+tspan = 0:0.1:5;
+n = length(tspan);
+
+% Initial conditions
+x = zeros(2, n);
+xhat = zeros(2, n);
+x(:,1) = [1; 0];              % True initial state
+xhat(:,1) = [0; 0];           % Estimated initial state
+
+dt = 0.1;
+for k = 1:n-1
+    % True system
+    xdot = A*x(:,k) + B*u;
+    x(:,k+1) = x(:,k) + dt*xdot;
+
+    % Estimated system (observer)
+    y = C*x(:,k);
+    xhatdot = A*xhat(:,k) + B*u + L*(y - C*xhat(:,k));
+    xhat(:,k+1) = xhat(:,k) + dt*xhatdot;
+end
+
+% Plot results
+figure;
+subplot(2,1,1);
+plot(tspan, x(1,:), 'b', 'LineWidth', 1.5); hold on;
+plot(tspan, xhat(1,:), 'r--', 'LineWidth', 1.2);
+xlabel('Time (s)'); ylabel('Displacement');
+legend('True', 'Estimated');
+
+subplot(2,1,2);
+plot(tspan, x(2,:), 'b', 'LineWidth', 1.5); hold on;
+plot(tspan, xhat(2,:), 'r--', 'LineWidth', 1.2);
+xlabel('Time (s)'); ylabel('Velocity');
+legend('True', 'Estimated');
