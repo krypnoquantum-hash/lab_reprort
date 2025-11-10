@@ -1,0 +1,16 @@
+num = [0 1];
+den = [1 1];
+
+sys_tf = tf(num, den);
+%step(sys_tf);
+%impulse(sys_tf);
+amplitude = 1;
+frequency = 1;
+t = 0 : 0.01 : 10;
+u = amplitude * sin(frequency * t);
+y = lsim(sys_tf, u, t);
+%grid on;
+%plot(t, y);
+figure;
+plot(t, u, 'b', t, y, 'r--');
+grid on;
