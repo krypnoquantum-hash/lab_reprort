@@ -1,48 +1,54 @@
-r0 = 0.015;
-r1 = 0.015;
-c1 = 2400;
-delta_t = 1;
-alpha = exp(-delta_t/(r1*c1));
-A = [1 0; 0 alpha];
-B = [-delta_t; r1*(1-alpha)];
-C = [1 0];
-D = 0;
-poles = [0.5 0.4];
-L = place(A', C', poles)';
+%exp07
+R0=0.01;
+R1=0.015;
+C1=2400;
+alpha=0.1;
+Qnom=2.3;
+dt=1;
+A=[1 0;0 exp(-dt/(R1*C1))];
+B=[-dt/Qnom ;R1*(1-exp(-dt/(R1*C1)))];
+C=[alpha -1];
+D=[-R0];
 
-N = 100;
-true_SOC = zeros(1, N);
-estimated_SOC = zeros(1, N);
-Vrc_true = zeros(1, N);
-Vrc_est = zeros(1, N);
-I = randn(1, N);
-V = zeros(1, N);
-X_true = [0.8; 3.8];
-X_hat = [0.8; 3.8];
+L=place(A',C',[0.5 0.6])';
+tspan=1:0.1:5;
+n=length(tspan);
+u=0.5*ones(1,n);
+x=zeros(2,n);
+xhat=zeros(2,n);
+y=zeros(1,n);
+y_hat=zeros(1,n);
+x(:,1)=[0.9;4];
+xhat(:,1)=[0 ;4];
 
-for k = 1:N
-    V(k) = (4.8 * X_true(2) - r0 * I(k));
-    true_SOC(k) = X_true(1);
-    Vrc_true(k) = X_true(2);
-    estimated_SOC(k) = X_hat(1);
-    Vrc_est(k) = X_hat(2);
 
-    % Equations
-    X_true = A * X_true + B * I(k);
-    y = V(k);
-    X_hat = A * X_hat + B * I(k) + L * (y - (C * X_hat + D * I(k)));
+
+
+for k=1:n-1;
+   x(:,k+1)    = A*x(:,k) + B*u(k);
+    y(k)        = C*x(:,k) + D*u(k);
+    yhat(k)     = C*xhat(:,k) + D*u(k);
+    xhat(:,k+1) = A*xhat(:,k) + B*u(k) + L*(y(k)-yhat(k));
+
 end
 
-t = 1:N;
-figure;
-subplot(2,1,1);
-plot(t, true_SOC, 'b', t, estimated_SOC, 'r--', 'LineWidth', 1.5);
-xlabel('Time Step'); ylabel('SOC');
-legend('Actual SOC', 'Estimated SOC');
-title('SOC Estimation');
-
-subplot(2,1,2);
-plot(t, Vrc_true, 'b', t, Vrc_est, 'r--', 'LineWidth', 1.5);
-xlabel('Time Step'); ylabel('V_{RC}');
-legend('Actual V_{RC}', 'Estimated V_{RC}');
-title('V_{RC} Estimation');
+% % --- Plot SOC ---
+% subplot(2,1,1);
+% plot(tspan, x(1,:), 'b', 'LineWidth', 1.6); hold on;
+% plot(tspan, xhat(1,:), 'r--', 'LineWidth', 1.6);
+% title('State $x_1$ (SOC) vs Estimated $\hat{x}_1$', 'Interpreter','latex');
+% xlabel('Time (s)', 'Interpreter','latex');
+% ylabel('SOC', 'Interpreter','latex');
+% legend({'True $x_1$','Estimated $\hat{x}_1$'}, 'Interpreter','latex');
+% grid on;
+% 
+% % --- Plot V_RC ---
+% subplot(2,1,2);
+% plot(tspan, x(2,:), 'b', 'LineWidth', 1.6); hold on;
+% plot(tspan, xhat(2,:), 'r--', 'LineWidth', 1.6);
+% 
+% xlabel('Time (s)', 'Interpreter','latex');
+% ylabel('$V_{RC}$ (V)', 'Interpreter','latex');
+% legend({'True $x_2$','Estimated $\hat{x}_2$'}, 'Interpreter','latex');
+% grid on;
+%
