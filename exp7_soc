@@ -1,0 +1,48 @@
+r0 = 0.015;
+r1 = 0.015;
+c1 = 2400;
+delta_t = 1;
+alpha = exp(-delta_t/(r1*c1));
+A = [1 0; 0 alpha];
+B = [-delta_t; r1*(1-alpha)];
+C = [1 0];
+D = 0;
+poles = [0.5 0.4];
+L = place(A', C', poles)';
+
+N = 100;
+true_SOC = zeros(1, N);
+estimated_SOC = zeros(1, N);
+Vrc_true = zeros(1, N);
+Vrc_est = zeros(1, N);
+I = randn(1, N);
+V = zeros(1, N);
+X_true = [0.8; 3.8];
+X_hat = [0.8; 3.8];
+
+for k = 1:N
+    V(k) = (4.8 * X_true(2) - r0 * I(k));
+    true_SOC(k) = X_true(1);
+    Vrc_true(k) = X_true(2);
+    estimated_SOC(k) = X_hat(1);
+    Vrc_est(k) = X_hat(2);
+
+    % Equations
+    X_true = A * X_true + B * I(k);
+    y = V(k);
+    X_hat = A * X_hat + B * I(k) + L * (y - (C * X_hat + D * I(k)));
+end
+
+t = 1:N;
+figure;
+subplot(2,1,1);
+plot(t, true_SOC, 'b', t, estimated_SOC, 'r--', 'LineWidth', 1.5);
+xlabel('Time Step'); ylabel('SOC');
+legend('Actual SOC', 'Estimated SOC');
+title('SOC Estimation');
+
+subplot(2,1,2);
+plot(t, Vrc_true, 'b', t, Vrc_est, 'r--', 'LineWidth', 1.5);
+xlabel('Time Step'); ylabel('V_{RC}');
+legend('Actual V_{RC}', 'Estimated V_{RC}');
+title('V_{RC} Estimation');
