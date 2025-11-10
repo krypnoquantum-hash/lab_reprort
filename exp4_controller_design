@@ -1,0 +1,20 @@
+A = [0 1; 9 0];
+B = [0; -2];
+p = [-5+5j, -5-5j];
+
+k = place(A, B, p);
+Acl = A - B * k;
+
+disp(k);
+disp(eig(Acl));
+disp(poly(Acl));
+
+f = @(t, x) Acl * x;
+x0 = [0; 1; 0];
+tend = 5;
+
+[t, x] = ode45(f, [0, tend], x0);
+
+disp(t(1:5));
+disp(x(1:5, :));
+disp(x(end, :));
