@@ -1,0 +1,33 @@
+t = 0:100;
+T = 1;
+num_steps = 100;
+F = [1 T 0.5*T^2; 0 1 T; 0 0 1];
+x(:,1) = [0; 10; 10];
+sigma_q = 0.02;
+I = [1 0 0; 0 1 0; 0 0 1];
+Q = sigma_q^2 * sigma_q * I;
+
+for k = 1:100
+    q = mvnrnd([0 0 0], Q)';
+    x(:,k+1) = F * x(:,k) + q;
+end
+
+figure;
+S = x(1,:);
+V = x(2,:);
+A = x(3,:);
+
+subplot(3,1,1);
+plot(t, S, 'b', 'LineWidth', 1.5);
+xlabel('time'); ylabel('Displacement');
+title('S vs T'); grid on;
+
+subplot(3,1,2);
+plot(t, V, 'r', 'LineWidth', 1.5);
+xlabel('time'); ylabel('Velocity');
+title('V vs T'); grid on;
+
+subplot(3,1,3);
+plot(t, A, 'b', 'LineWidth', 1.5);
+xlabel('time'); ylabel('Acceleration');
+title('A vs T'); grid on;
